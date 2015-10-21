@@ -40,50 +40,26 @@ public class CubeSurfaceView extends SurfaceView {
     public boolean isWireframe;
 
     Paint line;
-    Paint text;
-
-    Paint face1;
-    Paint face2;
-    Paint face3;
-    Paint face4;
-    Paint face5;
-    Paint face6;
+    Paint color;
+    Paint temp;
 
     public CubeSurfaceView(Context context, AttributeSet attrs) {
         super(context, attrs);
         setWillNotDraw(false);
 
         phi = 60.0;
-        theta = 0.0;
+        theta = 60.0;
         isWireframe = false;
 
         line = new Paint();
         line.setColor(Color.BLACK);
         line.setStyle(Paint.Style.STROKE);
         line.setStrokeWidth(2);
-        text = new Paint();
-        text.setColor(Color.GRAY);
-        text.setStyle(Paint.Style.FILL);
-        text.setTextSize(30);
-
-        face1 = new Paint();
-        face2 = new Paint();
-        face3 = new Paint();
-        face4 = new Paint();
-        face5 = new Paint();
-        face6 = new Paint();
-        face1.setColor(Color.RED);
-        face2.setColor(Color.YELLOW);
-        face3.setColor(Color.BLUE);
-        face4.setColor(Color.YELLOW);
-        face5.setColor(Color.BLUE);
-        face6.setColor(Color.RED);
-        face1.setStyle(Paint.Style.FILL);
-        face2.setStyle(Paint.Style.FILL);
-        face3.setStyle(Paint.Style.FILL);
-        face4.setStyle(Paint.Style.FILL);
-        face5.setStyle(Paint.Style.FILL);
-        face6.setStyle(Paint.Style.FILL);
+        color = new Paint();
+        color.setColor(Color.RED);
+        color.setStyle(Paint.Style.FILL);
+        temp = new Paint();
+        temp.setStyle(Paint.Style.FILL);
     }
 
     @Override
@@ -107,44 +83,53 @@ public class CubeSurfaceView extends SurfaceView {
         } else {
             double pts[][] = {{1, 1, 1}, {1, -1, 1}, {-1, 1, 1}, {-1, -1, 1},
                     {1, 1, -1}, {1, -1, -1}, {-1, 1, -1}, {-1, -1, -1}};
-            double cents[] = {distance(0, 0, 1), distance(1, 0, 0), distance(0, -1, 0),
-                    distance(-1, 0, 0), distance(0, 1, 0), distance(0, 0, -1)};
-            int faces[][] = {{0, 1, 3, 2}, {0, 1, 5, 4}, {1, 3, 7, 5},
-                    {2, 3, 7, 6}, {0, 2, 6, 4}, {4, 5, 7, 6}};
-            Paint colors[] = {face1, face2, face3, face4, face5, face6};
+            int faces[][] = {{0, 1, 3, 2}, {1, 0, 4, 5}, {3, 1, 5, 7},
+                    {2, 3, 7, 6}, {0, 2, 6, 4}, {5, 4, 6, 7}};
 
             for (int i = 0; i < 6; i++) {
-                int temp = i;
-                for (int j = i; j < 6; j++) {
-                    if (cents[j] > cents[temp])
-                    {temp = j;}
+                //parameterize the normal vector for the face of the cube
+                double[] v1 = {pts[faces[i][0]][0] - pts[faces[i][1]][0],
+                        pts[faces[i][0]][1] - pts[faces[i][1]][1],
+                        pts[faces[i][0]][2] - pts[faces[i][1]][2]};
+                double[] v2 = {pts[faces[i][0]][0] - pts[faces[i][2]][0],
+                        pts[faces[i][0]][1] - pts[faces[i][2]][1],
+                        pts[faces[i][0]][2] - pts[faces[i][2]][2]};
+                double[] v3 = {v1[1] * v2[2] - v1[2] * v2[1], v1[2] * v2[0] - v1[0] * v2[2], v1[0] * v2[1] - v1[1] * v2[0]};
+                double normV3 = Math.sqrt(v3[0]*v3[0] + v3[1]*v3[1] + v3[2]*v3[2]);
+                v3[0] /= normV3; v3[1] /= normV3; v3[2] /= normV3; //normalize the vector
+
+                //parameterize the vector from the camera to the face
+                double[] cam = {pts[faces[i][0]][0] - a*d/p, pts[faces[i][0]][1] - b*d/p, pts[faces[i][0]][2] - c*d/p};
+                double normCam = Math.sqrt(cam[0]*cam[0] + cam[1]*cam[1] + cam[2]*cam[2]);
+                cam[0] /= normCam; cam[1] /= normCam; cam[2] /= normCam;
+
+                //dot the normal vector with the camera vector
+                double dot = cam[0]*v3[0] + cam[1]*v3[1] + cam[2]*v3[2];
+
+                if(dot>0) {
+                    Path cubeFace = new Path();
+                    cubeFace.moveTo(
+                            mapX(pts[faces[i][0]][0], pts[faces[i][0]][1], pts[faces[i][0]][2]),
+                            mapY(pts[faces[i][0]][0], pts[faces[i][0]][1], pts[faces[i][0]][2]));
+                    cubeFace.lineTo(
+                            mapX(pts[faces[i][1]][0], pts[faces[i][1]][1], pts[faces[i][1]][2]),
+                            mapY(pts[faces[i][1]][0], pts[faces[i][1]][1], pts[faces[i][1]][2]));
+                    cubeFace.lineTo(
+                            mapX(pts[faces[i][2]][0], pts[faces[i][2]][1], pts[faces[i][2]][2]),
+                            mapY(pts[faces[i][2]][0], pts[faces[i][2]][1], pts[faces[i][2]][2]));
+                    cubeFace.lineTo(
+                            mapX(pts[faces[i][3]][0], pts[faces[i][3]][1], pts[faces[i][3]][2]),
+                            mapY(pts[faces[i][3]][0], pts[faces[i][3]][1], pts[faces[i][3]][2]));
+                    cubeFace.close();
+
+                    double factor = Math.min(1, Math.max(0, 0.4 + 0.6 * dot));
+                    temp.setColor(Color.rgb(
+                            (int)(Color.red(color.getColor())*factor),
+                            (int)(Color.green(color.getColor())*factor),
+                            (int)(Color.blue(color.getColor())*factor)));
+
+                    canvas.drawPath(cubeFace, temp);
                 }
-                double tempCent = cents[i];
-                cents[i] = cents[temp];
-                cents[temp] = tempCent;
-                int tempFace[] = faces[i];
-                faces[i] = faces[temp];
-                faces[temp] = tempFace;
-                Paint tempColor = colors[i];
-                colors[i] = colors[temp];
-                colors[temp] = tempColor;
-            }
-            for (int i = 0; i < 6; i++) {
-                Path cubeFace = new Path();
-                cubeFace.moveTo(
-                        mapX(pts[faces[i][0]][0], pts[faces[i][0]][1], pts[faces[i][0]][2]),
-                        mapY(pts[faces[i][0]][0], pts[faces[i][0]][1], pts[faces[i][0]][2]));
-                cubeFace.lineTo(
-                        mapX(pts[faces[i][1]][0], pts[faces[i][1]][1], pts[faces[i][1]][2]),
-                        mapY(pts[faces[i][1]][0], pts[faces[i][1]][1], pts[faces[i][1]][2]));
-                cubeFace.lineTo(
-                        mapX(pts[faces[i][2]][0], pts[faces[i][2]][1], pts[faces[i][2]][2]),
-                        mapY(pts[faces[i][2]][0], pts[faces[i][2]][1], pts[faces[i][2]][2]));
-                cubeFace.lineTo(
-                        mapX(pts[faces[i][3]][0], pts[faces[i][3]][1], pts[faces[i][3]][2]),
-                        mapY(pts[faces[i][3]][0], pts[faces[i][3]][1], pts[faces[i][3]][2]));
-                cubeFace.close();
-                canvas.drawPath(cubeFace, colors[i]);
             }
         }
     }
