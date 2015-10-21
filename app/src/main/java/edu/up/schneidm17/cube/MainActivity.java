@@ -6,6 +6,8 @@ import android.os.Bundle;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
+import android.widget.ToggleButton;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener, View.OnTouchListener{
 
@@ -14,6 +16,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     Button rotateRightButton;
     Button rotateDownButton;
     Button rotateLeftButton;
+    ToggleButton wireframeButton;
+    TextView anglePhi;
+    TextView angleTheta;
 
     float x0; //previous x-coordinate of touch event
     float y0; //previous y-coordinate of touch event
@@ -28,12 +33,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         rotateRightButton = (Button) findViewById(R.id.buttonRotateRight);
         rotateDownButton = (Button) findViewById(R.id.buttonRotateDown);
         rotateLeftButton = (Button) findViewById(R.id.buttonRotateLeft);
+        wireframeButton = (ToggleButton) findViewById(R.id.buttonWireframe);
+        anglePhi = (TextView) findViewById(R.id.phiAngle);
+        angleTheta = (TextView) findViewById(R.id.thetaAngle);
 
         mySurfaceView.setOnTouchListener(this);
         rotateUpButton.setOnClickListener(this);
         rotateRightButton.setOnClickListener(this);
         rotateDownButton.setOnClickListener(this);
         rotateLeftButton.setOnClickListener(this);
+        wireframeButton.setOnClickListener(this);
+        anglePhi.setText("phi = " + mySurfaceView.getPhi());
+        angleTheta.setText("theta = " + mySurfaceView.getTheta());
     }
 
     @Override
@@ -58,7 +69,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             mySurfaceView.rotateLeft();
             mySurfaceView.getHolder().unlockCanvasAndPost(myCanvas);
             mySurfaceView.postInvalidate();
+        } else if (v.equals(wireframeButton)) {
+            Canvas myCanvas = mySurfaceView.getHolder().lockCanvas();
+            mySurfaceView.isWireframe = wireframeButton.isChecked();
+            mySurfaceView.getHolder().unlockCanvasAndPost(myCanvas);
+            mySurfaceView.postInvalidate();
         }
+        anglePhi.setText("phi = " + mySurfaceView.getPhi());
+        angleTheta.setText("theta = " + mySurfaceView.getTheta());
     }
 
     @Override
@@ -82,7 +100,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         x0 = x;
         y0 = y;
-
+        anglePhi.setText("phi = " + mySurfaceView.getPhi());
+        angleTheta.setText("theta = " + mySurfaceView.getTheta());
         return true;
     }
 }
