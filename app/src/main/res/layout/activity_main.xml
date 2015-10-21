@@ -55,17 +55,19 @@
     <ToggleButton
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Wireframe"
         android:id="@+id/buttonWireframe"
         android:layout_alignParentBottom="true"
         android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true" />
+        android:layout_alignParentStart="true"
+        android:textOn="Wireframe On"
+        android:textOff="Wireframe Off"
+        android:minWidth="135dp" />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceMedium"
-        android:text="Medium Text"
+        android:text="phi = ?"
         android:id="@+id/phiAngle"
         android:layout_alignParentTop="true"
         android:layout_alignParentLeft="true"
@@ -78,7 +80,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceMedium"
-        android:text="Medium Text"
+        android:text="theta = ?"
         android:id="@+id/thetaAngle"
         android:layout_below="@+id/phiAngle"
         android:layout_alignParentLeft="true"
