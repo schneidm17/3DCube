@@ -99,7 +99,7 @@ public class CubeSurfaceView extends SurfaceView {
                 v3[0] /= normV3; v3[1] /= normV3; v3[2] /= normV3; //normalize the vector
 
                 //parameterize the vector from the camera to the face
-                double[] cam = {pts[faces[i][0]][0] - a*d/p, pts[faces[i][0]][1] - b*d/p, pts[faces[i][0]][2] - c*d/p};
+                double[] cam = {pts[faces[i][0]][0] - a*d, pts[faces[i][0]][1] - b*d, pts[faces[i][0]][2] - c*d};
                 double normCam = Math.sqrt(cam[0]*cam[0] + cam[1]*cam[1] + cam[2]*cam[2]);
                 cam[0] /= normCam; cam[1] /= normCam; cam[2] /= normCam;
 
@@ -148,14 +148,14 @@ public class CubeSurfaceView extends SurfaceView {
         else if (theta > 180)
             theta -= 360;
 
-        a = p * Math.sin(phi * deg) * Math.cos(theta * deg); //x value of view plane axis
-        b = p * Math.sin(phi * deg) * Math.sin(theta * deg); //y value of view plane axis
-        c = p * Math.cos(phi * deg); //z value of view plane axis (in R3)
-        k1 = s * Math.cos(deg * theta);
-        k2 = -s * Math.sin(deg * theta);
-        k3 = -s * Math.cos(deg * theta) * Math.cos(deg * phi);
-        k4 = -s * Math.sin(deg * theta) * Math.cos(deg * phi);
-        k5 = s * Math.sin(deg * phi);
+        a = Math.sin(phi*deg)*Math.cos(theta*deg);
+        b = Math.sin(phi*deg)*Math.sin(theta*deg);
+        c = Math.cos(phi*deg);
+        k1 = -(d-p)*Math.sin(theta*deg);
+        k2 = (d-p)*Math.cos(theta*deg);
+        k3 = -(d-p)*Math.cos(phi*deg)*Math.cos(theta*deg);
+        k4 = -(d-p)*Math.cos(phi*deg)*Math.sin(theta*deg);
+        k5 = (d-p)*Math.sin(phi*deg);
         cy = this.getHeight() / 2.0f;
         cx = this.getWidth() / 2.0f;
     }
@@ -170,8 +170,7 @@ public class CubeSurfaceView extends SurfaceView {
      * @return the x coordinate on the screen of the point {x,y,x} in 3D space
      */
     public float mapX(double x, double y, double z) {
-        double t = (p * p - x * a - y * b - z * c) / (d * p - x * a - y * b - c * z);
-        return cx + (float) ((b - y - t * (d * b / p - y)) * k1 + (a - x - t * (d * a / p - x)) * k2);
+        return cx+(float)(s*(x*k1 + y*k2)/(a*x + b*y + c*z -d));
     }
 
     /**
@@ -184,9 +183,7 @@ public class CubeSurfaceView extends SurfaceView {
      * @return the y coordinate on the screen of the point {x,y,x} in 3D space
      */
     public float mapY(double x, double y, double z) {
-        double t = (p * p - x * a - y * b - z * c) / (d * p - x * a - y * b - c * z);
-        return cy + (float) ((a - x - t * (d * a / p - x)) * k3 +
-                (b - y - t * (d * b / p - y)) * k4 + (c - z - t * (d * c / p - z)) * k5);
+        return cy+(int)(s*(x*k3 + y*k4 + z*k5)/(a*x + b*y + c*z -d));
     }
 
     /**
