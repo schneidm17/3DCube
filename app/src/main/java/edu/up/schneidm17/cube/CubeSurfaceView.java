@@ -42,6 +42,7 @@ public class CubeSurfaceView extends SurfaceView {
     Paint line;
     Paint color;
     Paint temp;
+    Path path;
 
     public CubeSurfaceView(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -60,6 +61,7 @@ public class CubeSurfaceView extends SurfaceView {
         color.setStyle(Paint.Style.FILL);
         temp = new Paint();
         temp.setStyle(Paint.Style.FILL);
+        path = new Path();
     }
 
     @Override
@@ -107,28 +109,28 @@ public class CubeSurfaceView extends SurfaceView {
                 double dot = cam[0]*v3[0] + cam[1]*v3[1] + cam[2]*v3[2];
 
                 if(dot>0) {
-                    Path cubeFace = new Path();
-                    cubeFace.moveTo(
+                    path.reset();
+                    path.moveTo(
                             mapX(pts[faces[i][0]][0], pts[faces[i][0]][1], pts[faces[i][0]][2]),
                             mapY(pts[faces[i][0]][0], pts[faces[i][0]][1], pts[faces[i][0]][2]));
-                    cubeFace.lineTo(
+                    path.lineTo(
                             mapX(pts[faces[i][1]][0], pts[faces[i][1]][1], pts[faces[i][1]][2]),
                             mapY(pts[faces[i][1]][0], pts[faces[i][1]][1], pts[faces[i][1]][2]));
-                    cubeFace.lineTo(
+                    path.lineTo(
                             mapX(pts[faces[i][2]][0], pts[faces[i][2]][1], pts[faces[i][2]][2]),
                             mapY(pts[faces[i][2]][0], pts[faces[i][2]][1], pts[faces[i][2]][2]));
-                    cubeFace.lineTo(
+                    path.lineTo(
                             mapX(pts[faces[i][3]][0], pts[faces[i][3]][1], pts[faces[i][3]][2]),
                             mapY(pts[faces[i][3]][0], pts[faces[i][3]][1], pts[faces[i][3]][2]));
-                    cubeFace.close();
+                    path.close();
 
                     double factor = Math.min(1, Math.max(0, 0.4 + 0.6 * dot));
                     temp.setColor(Color.rgb(
-                            (int)(Color.red(color.getColor())*factor),
-                            (int)(Color.green(color.getColor())*factor),
+                            (int) (Color.red(color.getColor()) * factor),
+                            (int) (Color.green(color.getColor()) * factor),
                             (int)(Color.blue(color.getColor())*factor)));
 
-                    canvas.drawPath(cubeFace, temp);
+                    canvas.drawPath(path, temp);
                 }
             }
         }
@@ -151,11 +153,11 @@ public class CubeSurfaceView extends SurfaceView {
         a = Math.sin(phi*deg)*Math.cos(theta*deg);
         b = Math.sin(phi*deg)*Math.sin(theta*deg);
         c = Math.cos(phi*deg);
-        k1 = -(d-p)*Math.sin(theta*deg);
-        k2 = (d-p)*Math.cos(theta*deg);
-        k3 = -(d-p)*Math.cos(phi*deg)*Math.cos(theta*deg);
-        k4 = -(d-p)*Math.cos(phi*deg)*Math.sin(theta*deg);
-        k5 = (d-p)*Math.sin(phi*deg);
+        k1 = -s*Math.sin(theta*deg);
+        k2 = s*Math.cos(theta*deg);
+        k3 = -s*Math.cos(phi*deg)*Math.cos(theta*deg);
+        k4 = -s*Math.cos(phi*deg)*Math.sin(theta*deg);
+        k5 = s*Math.sin(phi*deg);
         cy = this.getHeight() / 2.0f;
         cx = this.getWidth() / 2.0f;
     }
@@ -170,7 +172,7 @@ public class CubeSurfaceView extends SurfaceView {
      * @return the x coordinate on the screen of the point {x,y,x} in 3D space
      */
     public float mapX(double x, double y, double z) {
-        return cx+(float)(s*(x*k1 + y*k2)/(a*x + b*y + c*z -d));
+        return cx+(float)((x*k1 + y*k2)/(a*x + b*y + c*z - d));
     }
 
     /**
@@ -183,7 +185,7 @@ public class CubeSurfaceView extends SurfaceView {
      * @return the y coordinate on the screen of the point {x,y,x} in 3D space
      */
     public float mapY(double x, double y, double z) {
-        return cy+(int)(s*(x*k3 + y*k4 + z*k5)/(a*x + b*y + c*z -d));
+        return cy+(int)((x*k3 + y*k4 + z*k5)/(a*x + b*y + c*z - d));
     }
 
     /**
